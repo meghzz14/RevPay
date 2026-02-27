@@ -1,0 +1,150 @@
+package com.revpay.service.impl;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.revpay.model.User;
+import com.revpay.model.Wallet;
+import com.revpay.model.enums.TransactionStatus;
+import com.revpay.model.enums.TransactionType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import org.springframework.transaction.annotation.Transactional;
+
+import com.revpay.model.Transaction;
+import com.revpay.repository.TransactionRepository;
+import com.revpay.repository.UserRepository;
+import com.revpay.repository.WalletRepository;
+import com.revpay.service.AuthService;
+import com.revpay.service.TransactionService;
+
+@Service
+public class TransactionServiceImpl implements TransactionService {
+
+    private final TransactionRepository transactionRepository;
+    private final UserRepository userRepository;
+    private final WalletRepository walletRepository;
+    private final AuthService authService;
+
+    @Autowired
+    public TransactionServiceImpl(TransactionRepository transactionRepository,
+                                  UserRepository userRepository,
+                                  WalletRepository walletRepository,
+                                  AuthService authService) {
+        this.transactionRepository = transactionRepository;
+        this.userRepository = userRepository;
+        this.walletRepository = walletRepository;
+        this.authService = authService;
+    }
+
+    @Override
+    @Transactional
+    public void sendMoney(Long senderId,
+                          Long receiverId,
+                          BigDecimal amount,
+                          String transactionPin,
+                          String remarks) {
+
+        // Validate sender != receiver
+        if (senderId.equals(receiverId)) {
+            throw new IllegalArgumentException("Sender and receiver cannot be the same");
+        }
+
+        // Validate amount
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+
+        // Fetch sender & receiver
+        User sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new IllegalArgumentException("Sender not found"));
+
+        User receiver = userRepository.findById(receiverId)
+                .orElseThrow(() -> new IllegalArgumentException("Receiver not found"));
+
+        // Verify sender transaction PIN
+        boolean pinValid = authService.verifyTransactionPin(sender, transactionPin);
+        if (!pinValid) {
+            throw new IllegalArgumentException("Invalid transaction PIN");
+        }
+
+        // Fetch wallets
+        Wallet senderWallet = walletRepository.findByUser(sender)
+                .orElseThrow(() -> new IllegalStateException("Sender wallet not found"));
+
+        Wallet receiverWallet = walletRepository.findByUser(receiver)
+                .orElseThrow(() -> new IllegalStateException("Receiver wallet not found"));
+
+        // Check sufficient balance
+        if (senderWallet.getBalance().compareTo(amount) < 0) {
+            throw new IllegalStateException("Insufficient balance");
+        }
+
+        // Debit sender
+        senderWallet.setBalance(senderWallet.getBalance().subtract(amount));
+        senderWallet.setLastUpdated(LocalDateTime.now());
+
+        // Credit receiver
+        receiverWallet.setBalance(receiverWallet.getBalance().add(amount));
+        receiverWallet.setLastUpdated(LocalDateTime.now());
+
+        // Save wallets
+        walletRepository.save(senderWallet);
+        walletRepository.save(receiverWallet);
+
+        // Create SENDER transaction record
+        Transaction senderTxn = new Transaction();
+        senderTxn.setSender(sender);
+        senderTxn.setReceiver(receiver);
+        senderTxn.setAmount(amount);
+        senderTxn.setTxnType(TransactionType.SEND);
+        senderTxn.setStatus(TransactionStatus.SUCCESS);
+        senderTxn.setRemarks(remarks);
+        senderTxn.setTxnDate(LocalDateTime.now());
+
+        // Create RECEIVER transaction record
+        Transaction receiverTxn = new Transaction();
+        receiverTxn.setSender(sender);
+        receiverTxn.setReceiver(receiver);
+        receiverTxn.setAmount(amount);
+        receiverTxn.setTxnType(TransactionType.RECEIVE);
+        receiverTxn.setStatus(TransactionStatus.SUCCESS);
+        receiverTxn.setRemarks(remarks);
+        receiverTxn.setTxnDate(LocalDateTime.now());
+
+        // Save transactions
+        transactionRepository.save(senderTxn);
+        transactionRepository.save(receiverTxn);
+    }
+
+    @Override
+    public List<Transaction> getTransactionsForUser(Long userId) {
+
+        // Fetch user
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Fetch sent transactions
+        List<Transaction> sentTransactions =
+                transactionRepository.findBySender(user);
+
+        // Fetch received transactions
+        List<Transaction> receivedTransactions =
+                transactionRepository.findByReceiver(user);
+
+        // Merge both lists
+        List<Transaction> allTransactions = new ArrayList<>();
+        allTransactions.addAll(sentTransactions);
+        allTransactions.addAll(receivedTransactions);
+
+        // Sort by transaction date (latest first)
+        allTransactions.sort(
+                (t1, t2) -> t2.getTxnDate().compareTo(t1.getTxnDate())
+        );
+
+        return allTransactions;
+    }
+}

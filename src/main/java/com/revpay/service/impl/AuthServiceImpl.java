@@ -215,4 +215,48 @@ public class AuthServiceImpl implements AuthService {
         // Compare raw pin with stored hash
         return passwordEncoder.matches(rawPin, user.getTransactionPinHash());
     }
+
+    @Override
+    public boolean verifySecurityQuestion(String loginId, String answer) {
+
+        // Find user by email or phone
+        User user = userRepository
+                .findByEmailOrPhone(loginId, loginId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Fetch user's security question (ONE-TO-ONE)
+        SecurityQuestion securityQuestion = securityQuestionRepository
+                .findByUser(user)
+                .orElseThrow(() -> new IllegalStateException("Security question not set"));
+
+        // Compare provided answer with stored hash
+        return passwordEncoder.matches(
+                answer,
+                securityQuestion.getAnswerHash()
+        );
+    }
+
+    @Override
+    public void resetPassword(Long userId, String newPassword) {
+
+        // Fetch user
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Hash new password
+        String hashedPassword = passwordEncoder.encode(newPassword);
+
+        // Update password
+        user.setPasswordHash(hashedPassword);
+
+        // Reset security-related fields
+        user.setFailedAttempts(0);
+        user.setIsLocked(YesNoStatus.NO);
+
+        // (Optional but good practice)
+        user.setLastLogin(LocalDateTime.now());
+
+        // Save user
+        userRepository.save(user);
+    }
 }

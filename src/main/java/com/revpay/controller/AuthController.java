@@ -8,16 +8,20 @@ import org.springframework.web.bind.annotation.*;
 import com.revpay.dto.RegisterRequest;
 import com.revpay.model.User;
 import com.revpay.service.AuthService;
+import com.revpay.repository.UserRepository;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
     private final AuthService authService;
+    private final UserRepository userRepository;
 
     @Autowired
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService,
+                          UserRepository userRepository) {
         this.authService = authService;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -67,5 +71,40 @@ public class AuthController {
         // For now, we just return a success message.
         // Later this can return JWT / session details.
         return ResponseEntity.ok("Login successful for user: " + user.getFullName());
+    }
+
+    /**
+     * FORGOT PASSWORD - VERIFY Security Question
+     */
+    @PostMapping("/forgot-password/verify")
+    public ResponseEntity<Long> verifySecurityQuestion(
+            @RequestParam String loginId,
+            @RequestParam String answer) {
+
+        boolean verified = authService.verifySecurityQuestion(loginId, answer);
+
+        if (!verified) {
+            throw new IllegalArgumentException("Security answer is incorrect");
+        }
+
+        // Fetch user to return userId for next step
+        User user = userRepository
+                .findByEmailOrPhone(loginId, loginId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        return ResponseEntity.ok(user.getUserId());
+    }
+
+    /**
+     * FORGOT PASSWORD - RESET
+     */
+    @PostMapping("/forgot-password/reset")
+    public ResponseEntity<String> resetPassword(
+            @RequestParam Long userId,
+            @RequestParam String newPassword) {
+
+        authService.resetPassword(userId, newPassword);
+
+        return ResponseEntity.ok("Password reset successful");
     }
 }

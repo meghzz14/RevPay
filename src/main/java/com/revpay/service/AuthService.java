@@ -35,4 +35,14 @@ public interface AuthService {
      * Verify transaction PIN (used by wallet/transaction services).
      */
     boolean verifyTransactionPin(User user, String rawPin);
+
+    /**
+     * Verify Security Question to reset password
+     */
+    boolean verifySecurityQuestion(String loginId, String answer);
+
+    /**
+     * Resets password using forget password
+     */
+    void resetPassword(Long userId, String newPassword);
 }

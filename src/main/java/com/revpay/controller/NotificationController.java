@@ -2,6 +2,7 @@ package com.revpay.controller;
 
 import java.util.List;
 
+import com.revpay.dto.NotificationPreferenceRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,5 +42,22 @@ public class NotificationController {
         notificationService.markAsRead(notificationId);
 
         return ResponseEntity.ok("Notification marked as read");
+    }
+
+    @PostMapping("/preferences")
+    public ResponseEntity<String> updatePreference(
+            @RequestBody NotificationPreferenceRequest request) {
+
+        notificationService.updateNotificationPreference(request);
+
+        return ResponseEntity.ok("Notification preference updated");
+    }
+
+    @GetMapping("/preferences/{userId}")
+    public ResponseEntity<?> getPreferences(@PathVariable Long userId) {
+
+        return ResponseEntity.ok(
+                notificationService.getPreferences(userId)
+        );
     }
 }

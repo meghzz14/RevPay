@@ -2,7 +2,11 @@ package com.revpay.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
+import com.revpay.dto.NotificationPreferenceRequest;
+import com.revpay.model.NotificationPreference;
+import com.revpay.repository.NotificationPreferenceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,12 +25,14 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final NotificationPreferenceRepository notificationPreferenceRepository;
 
     @Autowired
     public NotificationServiceImpl(NotificationRepository notificationRepository,
-                                   UserRepository userRepository) {
+                                   UserRepository userRepository, NotificationPreferenceRepository notificationPreferenceRepository) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
+        this.notificationPreferenceRepository = notificationPreferenceRepository;
     }
 
     @Override
@@ -70,11 +76,21 @@ public class NotificationServiceImpl implements NotificationService {
             throw new IllegalArgumentException("UserId is required for notification");
         }
 
+        // Fetch user
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Check notification preference
+        Optional<NotificationPreference> pref =
+                notificationPreferenceRepository.findByUserAndType(user, type);
+
+        if (pref.isPresent() && pref.get().getEnabled() == YesNoStatus.NO) {
+            return; // user disabled this type
+        }
+
+        // Create notification
         Notification notification = new Notification();
-        notification.setUser(
-                userRepository.findById(userId)
-                        .orElseThrow(() -> new IllegalArgumentException("User not found"))
-        );
+        notification.setUser(user);
         notification.setMessage(message);
         notification.setType(type);
         notification.setIsRead(YesNoStatus.NO);
@@ -92,5 +108,33 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setIsRead(YesNoStatus.YES);
 
         notificationRepository.save(notification);
+    }
+
+    @Override
+    public void updateNotificationPreference(NotificationPreferenceRequest request) {
+
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        NotificationPreference pref =
+                notificationPreferenceRepository
+                        .findByUserAndType(user, request.getType())
+                        .orElse(new NotificationPreference());
+
+        pref.setUser(user);
+        pref.setType(request.getType());
+        pref.setEnabled(request.getEnabled());
+
+        notificationPreferenceRepository.save(pref);
+    }
+
+
+    @Override
+    public List<NotificationPreference> getPreferences(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        return notificationPreferenceRepository.findByUser(user);
     }
 }

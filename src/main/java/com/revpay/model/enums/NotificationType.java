@@ -5,5 +5,6 @@ public enum NotificationType {
     MONEY_REQUEST,
     INVOICE,
     LOAN,
-    SYSTEM
+    SYSTEM,
+    LOW_BALANCE
 }

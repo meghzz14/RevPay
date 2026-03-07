@@ -2,7 +2,9 @@ package com.revpay.service;
 
 import java.util.List;
 
+import com.revpay.dto.NotificationPreferenceRequest;
 import com.revpay.model.Notification;
+import com.revpay.model.NotificationPreference;
 import com.revpay.model.User;
 import com.revpay.model.enums.NotificationType;
 
@@ -31,4 +33,8 @@ public interface NotificationService {
     void sendNotification(Long userId, String message, NotificationType type);
 
     void markNotificationAsRead(Long notificationId);
+
+    void updateNotificationPreference(NotificationPreferenceRequest request);
+
+    List<NotificationPreference> getPreferences(Long userId);
 }

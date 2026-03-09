@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthController.class)
-@AutoConfigureMockMvc(addFilters = false)   // disable Spring Security during tests
+@AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
 
     @Autowired
@@ -46,10 +46,10 @@ class AuthControllerTest {
     private ObjectMapper objectMapper;
 
 
-    // ================= REGISTER TEST =================
+    // ================= REGISTER SUCCESS =================
 
     @Test
-    void testRegisterUser() throws Exception {
+    void registerUserSuccess() throws Exception {
 
         RegisterRequest request = new RegisterRequest();
 
@@ -75,10 +75,26 @@ class AuthControllerTest {
     }
 
 
-    // ================= LOGIN TEST =================
+    // ================= REGISTER FAILURE =================
 
     @Test
-    void testLoginSuccess() throws Exception {
+    void registerUserValidationFailure() throws Exception {
+
+        RegisterRequest request = new RegisterRequest();
+
+        request.setFullName(""); // invalid
+
+        mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+
+    // ================= LOGIN SUCCESS =================
+
+    @Test
+    void loginSuccess() throws Exception {
 
         User user = new User();
         user.setFullName("John Doe");
@@ -90,15 +106,29 @@ class AuthControllerTest {
                         .param("loginId", "john@gmail.com")
                         .param("password", "1234"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message")
-                        .value("Login successful"));
+                .andExpect(jsonPath("$.message").value("Login successful"));
     }
 
 
-    // ================= FETCH SECURITY QUESTION =================
+    // ================= LOGIN FAILURE =================
 
     @Test
-    void testGetSecurityQuestion() throws Exception {
+    void loginFailure() throws Exception {
+
+        Mockito.when(authService.login("john@gmail.com", "wrong"))
+                .thenThrow(new IllegalArgumentException("Invalid credentials"));
+
+        mockMvc.perform(post("/auth/login")
+                        .param("loginId", "john@gmail.com")
+                        .param("password", "wrong"))
+                .andExpect(status().isBadRequest());
+    }
+
+
+    // ================= GET SECURITY QUESTION =================
+
+    @Test
+    void getSecurityQuestionSuccess() throws Exception {
 
         User user = new User();
 
@@ -123,7 +153,7 @@ class AuthControllerTest {
     // ================= VERIFY SECURITY ANSWER =================
 
     @Test
-    void testVerifySecurityQuestion() throws Exception {
+    void verifySecurityQuestionSuccess() throws Exception {
 
         User user = new User();
         user.setUserId(1L);
@@ -139,15 +169,14 @@ class AuthControllerTest {
                         .param("loginId", "john@gmail.com")
                         .param("answer", "dog"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data")
-                        .value(1));
+                .andExpect(jsonPath("$.data").value(1));
     }
 
 
     // ================= RESET PASSWORD =================
 
     @Test
-    void testResetPassword() throws Exception {
+    void resetPasswordSuccess() throws Exception {
 
         mockMvc.perform(post("/auth/forgot-password/reset")
                         .param("userId", "1")

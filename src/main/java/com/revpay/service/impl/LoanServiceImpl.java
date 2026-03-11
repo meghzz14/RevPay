@@ -49,6 +49,7 @@ public class LoanServiceImpl implements LoanService {
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
         this.notificationService = notificationService;
+
         this.repaymentScheduleRepository = repaymentScheduleRepository;
     }
 

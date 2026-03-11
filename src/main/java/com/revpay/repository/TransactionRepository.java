@@ -43,8 +43,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("""
     SELECT t
     FROM Transaction t
+    LEFT JOIN t.sender s
+    LEFT JOIN t.receiver r
     WHERE
-        (t.sender.userId = :userId OR t.receiver.userId = :userId)
+        (s.userId = :userId OR r.userId = :userId)
 
     AND (:txnType IS NULL OR t.txnType = :txnType)
     AND (:status IS NULL OR t.status = :status)
@@ -57,8 +59,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     AND (
           :searchTerm IS NULL
-          OR LOWER(t.sender.fullName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
-          OR LOWER(t.receiver.fullName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
+          OR LOWER(s.fullName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
+          OR LOWER(r.fullName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
           OR CAST(t.txnId AS string) LIKE CONCAT('%', :searchTerm, '%')
     )""")
     Page<Transaction> filterTransactionsPaged(
@@ -109,12 +111,12 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     // For fetching revenue report (daily/weekly/monthly)
     @Query("""
-SELECT COALESCE(SUM(t.amount),0)
-FROM Transaction t
-WHERE t.receiver.userId = :businessId
-AND t.status = 'SUCCESS'
-AND t.txnDate >= :startDate
-""")
+    SELECT COALESCE(SUM(t.amount),0)
+    FROM Transaction t
+    WHERE t.receiver.userId = :businessId
+    AND t.status = 'SUCCESS'
+    AND t.txnDate >= :startDate
+    """)
     BigDecimal getRevenueFromDate(
             @Param("businessId") Long businessId,
             @Param("startDate") LocalDateTime startDate

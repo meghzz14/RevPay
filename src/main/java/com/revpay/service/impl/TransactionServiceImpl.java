@@ -168,6 +168,19 @@ public class TransactionServiceImpl implements TransactionService {
             );
         }
 
+        // Using createNotification() bypasses the preference checks entirely!
+        notificationService.createNotification(
+                receiver,
+                "You received ₹" + amount + " from " + sender.getFullName() + ".",
+                NotificationType.TRANSACTION
+        );
+
+        notificationService.createNotification(
+                sender,
+                "You successfully sent ₹" + amount + " to " + receiver.getFullName() + ".",
+                NotificationType.TRANSACTION
+        );
+
         log.info("Money transfer successful: senderId={}, receiverId={}, amount={}",
                 senderId, receiverId, amount);
     }

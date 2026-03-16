@@ -2,25 +2,218 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout :: head('Welcome to RevPay')}"></head>
 
-<body class="bg-light d-flex align-items-center vh-100">
+<body data-bs-spy="scroll" data-bs-target="#mainNavbar" data-bs-root-margin="0px 0px -40%" data-bs-smooth-scroll="true" tabindex="0">
 
-<div class="container text-center">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
+<style>
+    .hero-section {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-top: 80px; /* Offset for fixed navbar */
+    }
+    .section-padding {
+        padding: 100px 0;
+    }
+    .bg-light-blue {
+        background-color: #f8faff;
+    }
+    html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 70px;
+    }
+    .contact-icon {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
 
-            <h1 class="display-3 fw-bold text-primary mb-4">Welcome to RevPay</h1>
-            <p class="lead text-muted mb-5">
-                The secure, enterprise-grade financial platform for personal and business payments.
-            </p>
+    /* --- NEW: Active Navbar Link Styling --- */
+    .navbar-nav .nav-link {
+        transition: color 0.2s ease-in-out, border-bottom 0.2s ease-in-out;
+        border-bottom: 3px solid transparent; /* Invisible border prevents jumping */
+        padding-bottom: 5px;
+    }
 
-            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-                <a href="/login" class="btn btn-primary btn-lg px-5 gap-3 fw-bold shadow-sm">Sign In</a>
-                <a href="/register" class="btn btn-outline-primary btn-lg px-5 fw-bold bg-white">Create Account</a>
+    /* When Scrollspy detects the section, it adds the 'active' class */
+    .navbar-nav .nav-link.active {
+        color: #0d6efd !important; /* RevPay Primary Blue */
+        font-weight: 700 !important;
+        border-bottom: 3px solid #0d6efd;
+    }
+</style>
+
+<nav id="mainNavbar" class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm py-3">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-primary fs-4 tracking-tight" href="#hero">💳 RevPay</a>
+
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto fw-semibold">
+                <li class="nav-item"><a class="nav-link text-dark" href="#about">About Us</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="#vision">Our Vision</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="#contact">Contact</a></li>
+            </ul>
+            <div class="d-flex gap-3 mt-3 mt-lg-0">
+                <a href="/login" class="btn btn-primary fw-bold px-4">Sign In</a>
+                <a href="/register" class="btn btn-outline-primary fw-bold px-4">Create Account</a>
             </div>
-
         </div>
     </div>
-</div>
+</nav>
+
+<section id="hero" class="hero-section text-center bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h1 class="display-3 fw-bold text-primary mb-4">Welcome to RevPay</h1>
+                <p class="lead text-muted mb-5">
+                    The secure, enterprise-grade financial platform for personal and business payments.
+                </p>
+
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                    <a href="/login" class="btn btn-primary btn-lg px-5 gap-3 fw-bold shadow-sm">Sign In</a>
+                    <a href="/register" class="btn btn-outline-primary btn-lg px-5 fw-bold bg-white">Create Account</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="about" class="section-padding bg-light-blue border-top border-bottom">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-5 mb-md-0 pe-md-5">
+                <h6 class="text-primary fw-bold text-uppercase tracking-wider mb-2">About Us</h6>
+                <h2 class="fw-bold text-dark mb-4 display-6">Bridging the gap in modern finance.</h2>
+                <p class="text-muted fs-5 mb-4">
+                    RevPay is a next-generation financial ecosystem built to handle everything from seamless personal money transfers to robust business capital management.
+                </p>
+                <p class="text-muted fs-5">
+                    Whether you're splitting a dinner bill, issuing invoices for your startup, or applying for a business expansion loan, our unified platform gives you complete control over your money with uncompromising security.
+                </p>
+            </div>
+            <div class="col-md-6 text-center">
+                <div class="p-5 bg-white rounded-4 shadow border">
+                    <h1 class="display-1 text-primary mb-3">🔒</h1>
+                    <h4 class="fw-bold">Bank-Grade Security</h4>
+                    <p class="text-muted mb-0">Your data, transactions, and wallets are protected by state-of-the-art encryption and transaction PIN authorization.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="vision" class="section-padding bg-white">
+    <div class="container text-center">
+        <h6 class="text-primary fw-bold text-uppercase tracking-wider mb-2">Our Vision</h6>
+        <h2 class="fw-bold text-dark mb-5 display-6">Financial freedom for everyone.</h2>
+
+        <div class="row g-4 mt-2">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 bg-light-blue transition">
+                    <div class="card-body p-5">
+                        <div class="display-4 mb-4">🌍</div>
+                        <h4 class="fw-bold mb-3">Financial Inclusion</h4>
+                        <p class="text-muted mb-0">Making premium banking tools, lending, and invoicing accessible to everyone, from individuals to emerging enterprises.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 bg-light-blue transition">
+                    <div class="card-body p-5">
+                        <div class="display-4 mb-4">⚡</div>
+                        <h4 class="fw-bold mb-3">Frictionless Flow</h4>
+                        <p class="text-muted mb-0">Eliminating the waiting periods, hidden fees, and complex hurdles of traditional finance systems.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 bg-light-blue transition">
+                    <div class="card-body p-5">
+                        <div class="display-4 mb-4">📈</div>
+                        <h4 class="fw-bold mb-3">Empowering Growth</h4>
+                        <p class="text-muted mb-0">Providing businesses with the capital, analytics, and accounting tools they need to scale rapidly.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="contact" class="section-padding bg-dark text-white">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-6 text-center">
+                <h6 class="text-primary fw-bold text-uppercase tracking-wider mb-2">Contact Us</h6>
+                <h2 class="fw-bold mb-4 display-6">Get in Touch</h2>
+                <p class="text-white-50 fs-5">Have questions about our platform? Our dedicated support team is here to help you 24/7.</p>
+            </div>
+        </div>
+
+        <div class="row g-5 justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-primary text-white rounded-circle contact-icon me-3 shadow">📧</div>
+                    <div>
+                        <h6 class="fw-bold mb-1 text-uppercase text-white-50 small">Email Support</h6>
+                        <p class="mb-0 fs-5">support@revpay.com</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-primary text-white rounded-circle contact-icon me-3 shadow">📞</div>
+                    <div>
+                        <h6 class="fw-bold mb-1 text-uppercase text-white-50 small">Phone Support</h6>
+                        <p class="mb-0 fs-5">+91 1800-REV-PAY</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary text-white rounded-circle contact-icon me-3 shadow">🏢</div>
+                    <div>
+                        <h6 class="fw-bold mb-1 text-uppercase text-white-50 small">Headquarters</h6>
+                        <p class="mb-0 fs-5">RevPay Tech Park<br>Bengaluru, Karnataka</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-7 col-lg-6">
+                <form class="bg-white p-4 p-md-5 rounded-4 shadow" onsubmit="event.preventDefault(); window.alert('Message sent successfully! Our team will get back to you soon.'); this.reset();">
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <input type="text" class="form-control form-control-lg bg-light border-0" placeholder="Your Name" required>
+                        </div>
+                        <div class="col-sm-6">
+                            <input type="email" class="form-control form-control-lg bg-light border-0" placeholder="Email Address" required>
+                        </div>
+                        <div class="col-12">
+                            <input type="text" class="form-control form-control-lg bg-light border-0" placeholder="Subject" required>
+                        </div>
+                        <div class="col-12">
+                            <textarea class="form-control form-control-lg bg-light border-0" rows="4" placeholder="How can we help you?" required></textarea>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">Send Message</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="bg-dark text-center text-white-50 py-4 border-top border-secondary">
+    <div class="container">
+        <p class="mb-0">&copy; 2026 RevPay Financial Technologies. All rights reserved.</p>
+    </div>
+</footer>
+
+<div th:replace="~{layout :: scripts}"></div>
 
 </body>
 </html>

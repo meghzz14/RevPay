@@ -50,6 +50,7 @@
                             <div class="col-md-6">
                                 <label class="form-label text-muted fw-bold">Password</label>
                                 <input type="password" id="password" class="form-control" required>
+                                <div id="regPwdHelp" class="form-text text-muted small mt-1">Must be 8+ chars, with 1 uppercase, 1 number, & 1 symbol.</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-muted fw-bold">4-Digit Txn PIN</label>
@@ -126,6 +127,30 @@
 <div th:replace="~{layout :: scripts}"></div>
 
 <script>
+    // Real-time Password Strength Checker
+    function setupPasswordValidation(inputId, helpId) {
+        const input = document.getElementById(inputId);
+        const help = document.getElementById(helpId);
+        if(!input || !help) return;
+
+        const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+        input.addEventListener('input', function() {
+            if (input.value.length === 0) {
+                help.className = 'form-text text-muted small mt-1';
+                help.textContent = 'Must be 8+ chars, with 1 uppercase, 1 number, & 1 symbol.';
+            } else if(regex.test(input.value)) {
+                help.className = 'form-text text-success fw-bold small mt-1';
+                help.textContent = '✔ Strong password';
+            } else {
+                help.className = 'form-text text-danger small mt-1';
+                help.textContent = 'Weak: Must be 8+ chars, with 1 uppercase, 1 number, & 1 symbol.';
+            }
+        });
+    }
+
+    // Initialize checker
+    setupPasswordValidation('password', 'regPwdHelp');
+
     // Toggle Business Fields ON/OFF
     function toggleBusinessFields() {
         const isBusiness = document.getElementById('typeBusiness').checked;
@@ -145,6 +170,19 @@
     document.getElementById('registerForm').addEventListener('submit', function(event) {
         event.preventDefault();
 
+        // Pre-submit Password Verification
+        const pwd = document.getElementById('password').value;
+        const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+        if(!regex.test(pwd)) {
+            const alertBox = document.getElementById('messageAlert');
+            alertBox.className = 'alert alert-danger';
+            alertBox.textContent = "Password does not meet security requirements.";
+            alertBox.classList.remove('d-none');
+            // Scroll to top to see alert
+            window.scrollTo(0,0);
+            return;
+        }
+
         const userType = document.querySelector('input[name="userType"]:checked').value;
 
         // 1. Build the payload exactly mapping to RegisterRequest DTO
@@ -152,7 +190,7 @@
             fullName: document.getElementById('fullName').value,
             email: document.getElementById('email').value,
             phone: document.getElementById('phone').value,
-            password: document.getElementById('password').value,
+            password: pwd,
             userType: userType,
             transactionPin: document.getElementById('transactionPin').value,
 

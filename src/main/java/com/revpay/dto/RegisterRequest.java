@@ -22,7 +22,12 @@ public class RegisterRequest {
     @NotBlank(message = "Phone number is required")
     private String phone;
 
+    // Standard Password Policy
     @NotBlank(message = "Password is required")
+    @Pattern(
+            regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#])[A-Za-z\\d@$!%*?&#]{8,}$",
+            message = "Password must be at least 8 characters long and contain at least one uppercase letter, one number, and one special character"
+    )
     private String password;
 
     @NotNull(message = "User type is required")

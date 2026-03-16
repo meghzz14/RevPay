@@ -74,6 +74,7 @@
                     <p class="text-success fw-bold mb-3">Identity verified! Please set a new password.</p>
                     <div class="mb-3">
                         <input type="password" id="fpNewPassword" class="form-control form-control-lg" placeholder="New Password" required>
+                        <div id="fpPwdHelp" class="form-text text-muted small mt-1">Must be 8+ chars, with 1 uppercase, 1 number, & 1 symbol.</div>
                     </div>
                     <div class="mb-3">
                         <input type="password" id="fpConfirmPassword" class="form-control form-control-lg" placeholder="Confirm New Password" required>
@@ -89,6 +90,33 @@
 <div th:replace="~{layout :: scripts}"></div>
 
 <script>
+    // ==========================================
+    // Real-time Password Strength Checker
+    // ==========================================
+    function setupPasswordValidation(inputId, helpId) {
+        const input = document.getElementById(inputId);
+        const help = document.getElementById(helpId);
+        if(!input || !help) return;
+
+        const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+        input.addEventListener('input', function() {
+            if (input.value.length === 0) {
+                help.className = 'form-text text-muted small mt-1';
+                help.textContent = 'Must be 8+ chars, with 1 uppercase, 1 number, & 1 symbol.';
+            } else if(regex.test(input.value)) {
+                help.className = 'form-text text-success fw-bold small mt-1';
+                help.textContent = '✔ Strong password';
+            } else {
+                help.className = 'form-text text-danger small mt-1';
+                help.textContent = 'Weak: Must be 8+ chars, with 1 uppercase, 1 number, & 1 symbol.';
+            }
+        });
+    }
+
+    // Initialize checker ONLY for the forgot password modal
+    setupPasswordValidation('fpNewPassword', 'fpPwdHelp');
+
+
     // ==========================================
     // 1. STANDARD LOGIN LOGIC
     // ==========================================
@@ -197,6 +225,13 @@
         if(!pwd || !confirmPwd) { showFpAlert("Please fill in both fields."); return; }
         if(pwd !== confirmPwd) { showFpAlert("Passwords do not match."); return; }
 
+        // Pre-submit Password Verification
+        const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+        if(!regex.test(pwd)) {
+            showFpAlert("New password does not meet security requirements.");
+            return;
+        }
+
         const btn = document.getElementById('fpBtn3');
         btn.disabled = true; btn.textContent = "Resetting...";
 
@@ -231,6 +266,11 @@
         document.getElementById('fpConfirmPassword').value = '';
         currentFpLoginId = '';
         currentFpUserId = null;
+
+        // Reset helper UI state
+        const fpHelp = document.getElementById('fpPwdHelp');
+        fpHelp.className = 'form-text text-muted small mt-1';
+        fpHelp.textContent = 'Must be 8+ chars, with 1 uppercase, 1 number, & 1 symbol.';
     }
 </script>
 </body>

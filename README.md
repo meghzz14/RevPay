@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # RevPay - Digital Wallet & Business Payments Platform
 
 ## Project Description
@@ -263,3 +264,7 @@ Open the following file in your browser:
 ```
 target/site/jacoco/index.html
 ```
+=======
+# RevPay
+Java console application for secure digital payments and transaction management.
+>>>>>>> 347369d9f33355935b0121ac7608203c0b2609ef
